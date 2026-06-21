@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"for v in 3.13 3.12 3.11 3.10; do p=$(command -v python$v); [ -n \\\"$p\\\" ] && echo \\\"python$v -> $p\\\"; done; echo \\\"---uv---\\\"; command -v uv && uv python list 2>/dev/null | head -20\",\"descr...",
-  "error": "Exit code 1\npython3.13 -> /home/linuxbrew/.linuxbrew/bin/python3.13\n---uv---",
-  "timestamp": "2026-06-21T23:18:06.616Z",
+  "tool_input_preview": "{\"command\":\"python3 - <<'EOF'\\nimport asyncio, sys\\n\\n# --- versioning ---\\nfrom src.bridge_rag.versioning.blue_green import VersionedDeployment, UnpairedVersionError\\n\\ndep = VersionedDeployment(\\\"SI...",
+  "error": "Exit code 1\nTraceback (most recent call last):\n  File \"<stdin>\", line 4, in <module>\n  File \"/home/mbergo/github/bridge-rag/src/bridge_rag/versioning/blue_green.py\", line 19, in <module>\n    from ..types import BridgeVersion\n  File \"/home/mbergo/github/bridge-rag/src/bridge_rag/types.py\", line 17, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'",
+  "timestamp": "2026-06-21T23:36:43.202Z",
   "retry_count": 1
 }
