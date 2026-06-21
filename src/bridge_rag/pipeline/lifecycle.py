@@ -175,17 +175,25 @@ async def run_request(
     # ------------------------------------------------------------------
     # Generation — stream to caller
     # ------------------------------------------------------------------
-    seen_done = False
     async for chunk in generator.generate(ctx.query, ctx.spans):
-        yield chunk
+        # Suppress the backend's bare DONE; we emit an enriched one below that
+        # carries the critical-path ledger (the paper's timing tracks).
         if chunk.kind == ChunkKind.DONE:
-            seen_done = True
             break
+        yield chunk
         if chunk.kind == ChunkKind.ERROR:
             break
 
-    if not seen_done:
-        yield GenerationChunk(kind=ChunkKind.DONE)
+    yield GenerationChunk(
+        kind=ChunkKind.DONE,
+        meta={
+            "timings_ms": dict(ctx.timings_ms),
+            "critical_path_ms": ctx.critical_path_ms,
+            "span_count": len(ctx.spans),
+            "candidate_count": len(ctx.candidates),
+            "doc_ids": sorted({s.doc_id for s in ctx.spans}),
+        },
+    )
 
     # ------------------------------------------------------------------
     # Post-response background tasks (never block the response stream)

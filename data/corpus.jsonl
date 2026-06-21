@@ -1,0 +1,6 @@
+{"doc_id": "ib", "text": "The information bottleneck objective minimizes mutual information with the input while preserving mutual information with the output. Compress aggressively; keep only what predicts the answer."}
+{"doc_id": "stab", "text": "LayerNorm bounds the Jacobian spectral norm at every bridge output. Residual identity paths keep the product of Jacobians near one. Gradient clipping caps spikes before they multiply through the chain."}
+{"doc_id": "lrpart", "text": "Learning-rate partitioning is the primary stability lever. Upstream stages learn slowly so downstream noise cannot destabilize their representations."}
+{"doc_id": "halluc", "text": "Zero hallucination is structural, not a guardrail. The generator only receives extracted spans, so the context required to confabulate was already removed by the bridge."}
+{"doc_id": "sidecar", "text": "The sidecar is an attention-style span extractor distilled from a larger teacher. It runs under a sub-millisecond budget and emits spans with provenance offsets."}
+{"doc_id": "filler", "text": "Unrelated notes about gardening schedules, weather forecasts, and the price of tomatoes at the market."}

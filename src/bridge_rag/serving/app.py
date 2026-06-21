@@ -25,10 +25,14 @@ from __future__ import annotations
 import json
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any, AsyncGenerator, AsyncIterator, Optional
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from sse_starlette.sse import EventSourceResponse
+
+_STATIC_DIR = Path(__file__).parent / "static"
 
 from ..config import get_settings
 from ..types import ChunkKind, GenerationChunk
@@ -87,6 +91,15 @@ def create_app() -> FastAPI:
         version="0.1.0",
         lifespan=_lifespan,
     )
+
+    # ------------------------------------------------------------------
+    # GET /  -> the console UI
+    # ------------------------------------------------------------------
+
+    @app.get("/", include_in_schema=False)
+    async def index() -> FileResponse:
+        """Serve the single-page console that consumes the /answer SSE stream."""
+        return FileResponse(_STATIC_DIR / "index.html")
 
     # ------------------------------------------------------------------
     # GET /health
@@ -160,7 +173,8 @@ def _chunk_to_sse(chunk: GenerationChunk) -> dict[str, str]:
         return {"event": "citation", "data": data}
 
     if chunk.kind == ChunkKind.DONE:
-        return {"event": "done", "data": "done"}
+        # Carry the critical-path ledger so the client can render timings.
+        return {"event": "done", "data": json.dumps(chunk.meta or {})}
 
     if chunk.kind == ChunkKind.ERROR:
         return {"event": "error", "data": chunk.text}

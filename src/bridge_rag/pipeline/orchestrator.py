@@ -116,17 +116,26 @@ class Orchestrator:
         import os  # noqa: PLC0415
 
         corpus_path = settings.corpus_path
-        index_path = settings.index_path
 
-        # Try loading a pre-built corpus from disk.
-        if os.path.exists(corpus_path + ".npz") or os.path.exists(corpus_path):
+        # Prefer a pre-built .npz (fast, no re-embed). The corpus saver writes
+        # "<corpus_path>.npz", so check that explicitly first.
+        npz_path = corpus_path if corpus_path.endswith(".npz") else corpus_path + ".npz"
+        if os.path.exists(npz_path):
             try:
-                load_path = corpus_path if corpus_path.endswith(".npz") else corpus_path
-                corpus = Corpus.load(load_path)
-                logger.info("Corpus loaded from %s (%d docs)", load_path, len(corpus))
+                corpus = Corpus.load(npz_path)
+                logger.info("Corpus loaded from %s (%d docs)", npz_path, len(corpus))
                 return ANNIndex.build(corpus)
             except Exception as exc:
-                logger.warning("Failed to load corpus from %s: %s", corpus_path, exc)
+                logger.warning("Failed to load corpus npz %s: %s", npz_path, exc)
+
+        # Otherwise, build from a raw .jsonl by re-embedding (point at the file).
+        if os.path.exists(corpus_path) and corpus_path.endswith(".jsonl"):
+            try:
+                corpus = Corpus.from_jsonl(corpus_path, embedder)
+                logger.info("Corpus embedded from %s (%d docs)", corpus_path, len(corpus))
+                return ANNIndex.build(corpus)
+            except Exception as exc:
+                logger.warning("Failed to embed corpus jsonl %s: %s", corpus_path, exc)
 
         # Fallback: empty corpus — service starts, no retrieval results.
         logger.info(
