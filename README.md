@@ -128,6 +128,45 @@ SSE + console UI), version (blue/green paired), benchmark. The prod model
 backends (real weights, vLLM, faiss-gpu) are wired and selected by profile but
 not exercised in this environment.
 
+## Beyond feedforward: the brain / OS view
+
+The bridge thesis is not about RAG. It is about any system where modules
+communicate, and the interface decides the behavior. Two systems already
+implement it:
+
+| This system | Brain | OS |
+|---|---|---|
+| bridge `gAB` | thalamus (reticular nucleus gates what reaches cortex) | interrupt controller |
+| Eq.11 bottleneck | attention — pass salient, drop noise | event-queue filter |
+| `fB` span set | working memory | L1 cache / registers |
+| LayerNorm, bounded Jacobian | divisive normalization, E/I balance | gain control |
+| LR partitioning | plasticity rates (sensory slow, prefrontal fast) | scheduler priority |
+| Step-2 distillation | sleep — hippocampus → cortex consolidation | offline cache warmup |
+| 0% hallucination | awake, sensory-grounded | no speculation past the provenance line |
+| confabulation | bridge open to internal noise, no spans | speculative-execution leak |
+
+This implementation is the **awake, feedforward** version. Three extensions,
+present in biology, are deliberately out of scope here but are the natural next
+steps:
+
+1. **Top-down predictive coding.** Eq.6 is one-way. A biological bridge runs
+   both directions: the downstream stage sends predictions back to the bridge,
+   which then forwards only the *prediction error* — what was not already
+   expected. This compresses far harder than forward-only attention. The current
+   bridges implement the forward half.
+
+2. **Neuromodulation = dynamic β.** Here `beta` (the `I(U;X) − β·I(U;Y)`
+   trade-off) is a fixed config value. A biological system retunes it online —
+   compression aggressiveness and gain shift with context, surprise, and reward.
+   The bottleneck's knob should be a signal, not a constant.
+
+3. **Salience interrupt / fast path.** There is one critical path. A biological
+   system keeps a preempting lane *around* the bridge for high-priority events
+   (the amygdala low-road), trading selectivity for latency when it matters.
+
+The direction is not a larger model. It is a **bidirectional, neuromodulated
+bridge with an interrupt lane** — the same architecture, closing the loop.
+
 ## License
 
 MIT.
