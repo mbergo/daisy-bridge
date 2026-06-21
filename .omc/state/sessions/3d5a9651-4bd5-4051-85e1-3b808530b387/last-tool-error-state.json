@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"for v in 3.13 3.12 3.11 3.10; do p=$(command -v python$v); [ -n \\\"$p\\\" ] && echo \\\"python$v -> $p\\\"; done; echo \\\"---uv---\\\"; command -v uv && uv python list 2>/dev/null | head -20\",\"descr...",
+  "error": "Exit code 1\npython3.13 -> /home/linuxbrew/.linuxbrew/bin/python3.13\n---uv---",
+  "timestamp": "2026-06-21T23:18:06.616Z",
+  "retry_count": 1
+}
