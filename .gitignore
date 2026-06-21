@@ -27,3 +27,6 @@ htmlcov/
 # OS / editor
 .DS_Store
 *.swp
+
+# OMC agent state
+.omc/
