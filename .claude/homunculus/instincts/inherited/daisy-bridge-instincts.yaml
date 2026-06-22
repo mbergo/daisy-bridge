@@ -1,0 +1,477 @@
+# Instincts generated from https://github.com/mbergo/daisy-bridge
+# Generated: 2026-06-21T23:55:54.395Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: daisy-bridge-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/mbergo/daisy-bridge
+---
+
+# Daisy Bridge Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: feat
+
+## Evidence
+
+- 2 commits analyzed
+- Detected conventional commit pattern
+- Examples: feat: implement bridges, sidecar, training, serving, and tests, feat: streaming console UI, latency ledger, corpus loading fix
+
+---
+id: daisy-bridge-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/mbergo/daisy-bridge
+---
+
+# Daisy Bridge Commit Length
+
+## Action
+
+Write moderate-length commit messages (~62 characters)
+
+## Evidence
+
+- Average commit message length: 62 chars
+- Based on 2 commits
+
+---
+id: daisy-bridge-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/mbergo/daisy-bridge
+---
+
+# Daisy Bridge Naming Files
+
+## Action
+
+Use snake_case naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: snake_case
+
+---
+id: daisy-bridge-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/mbergo/daisy-bridge
+---
+
+# Daisy Bridge Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: daisy-bridge-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/mbergo/daisy-bridge
+---
+
+# Daisy Bridge Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: daisy-bridge-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/mbergo/daisy-bridge
+---
+
+# Daisy Bridge Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: daisy-bridge-test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/mbergo/daisy-bridge
+---
+
+# Daisy Bridge Test Naming
+
+## Action
+
+Name test files using the pattern: *.test.ts
+
+## Evidence
+
+- File pattern: *.test.ts
+- Consistent across test files
+
+---
+id: daisy-bridge-test-types
+trigger: "when planning tests for a feature"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/mbergo/daisy-bridge
+---
+
+# Daisy Bridge Test Types
+
+## Action
+
+Write unit, e2e tests to match project standards
+
+## Evidence
+
+- Test types detected: unit, e2e
+- Coverage config: no
+
+---
+id: daisy-bridge-workflow-feature-module-implementation
+trigger: "when doing feature module implementation"
+confidence: 0.55
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/mbergo/daisy-bridge
+---
+
+# Daisy Bridge Workflow Feature Module Implementation
+
+## Action
+
+Follow the feature-module-implementation workflow:
+1. Create or update multiple source files under a specific submodule directory (e.g., src/bridge_rag/bridges/, src/bridge_rag/losses/, etc.)
+2. Update or add integration points (e.g., factories, orchestrators, pipelines)
+3. Add or update corresponding test files in tests/ (e.g., test_bridges.py, test_losses.py, test_serving.py)
+4. Fix or update related defects surfaced by the new tests
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~1x per month
+- Files: src/bridge_rag/<module>/*.py, src/bridge_rag/pipeline/*.py, src/bridge_rag/serving/*.py
+
+---
+id: daisy-bridge-workflow-serving-endpoint-and-ui-update
+trigger: "when doing serving endpoint and ui update"
+confidence: 0.55
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/mbergo/daisy-bridge
+---
+
+# Daisy Bridge Workflow Serving Endpoint And Ui Update
+
+## Action
+
+Follow the serving-endpoint-and-ui-update workflow:
+1. Update or add FastAPI app or endpoint in src/bridge_rag/serving/app.py
+2. Add or update static assets in src/bridge_rag/serving/static/
+3. Update backend logic to emit new events or data (e.g., pipeline/lifecycle.py, pipeline/orchestrator.py)
+4. Update or add documentation in README.md
+5. Optionally, add or update test files for serving
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~1x per month
+- Files: src/bridge_rag/serving/app.py, src/bridge_rag/serving/static/*, src/bridge_rag/pipeline/lifecycle.py
+
+---
+id: daisy-bridge-instinct-file-naming
+trigger: "When creating or renaming a source file"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: mbergo/daisy-bridge
+---
+
+# Daisy Bridge Instinct File Naming
+
+## Action
+
+Use snake_case for file names
+
+## Evidence
+
+- Pattern in src/bridge_rag/
+- Naming conventions in analysis
+
+---
+id: daisy-bridge-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: mbergo/daisy-bridge
+---
+
+# Daisy Bridge Instinct Function Naming
+
+## Action
+
+Use camelCase for function names
+
+## Evidence
+
+- Naming conventions in analysis
+- Pattern in src/bridge_rag/
+
+---
+id: daisy-bridge-instinct-class-naming
+trigger: "When defining a new class"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: mbergo/daisy-bridge
+---
+
+# Daisy Bridge Instinct Class Naming
+
+## Action
+
+Use PascalCase for class names
+
+## Evidence
+
+- Naming conventions in analysis
+- Pattern in src/bridge_rag/
+
+---
+id: daisy-bridge-instinct-constant-naming
+trigger: "When defining a constant"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: mbergo/daisy-bridge
+---
+
+# Daisy Bridge Instinct Constant Naming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for constants
+
+## Evidence
+
+- Naming conventions in analysis
+- Pattern in src/bridge_rag/
+
+---
+id: daisy-bridge-instinct-import-style
+trigger: "When importing modules within the package"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: mbergo/daisy-bridge
+---
+
+# Daisy Bridge Instinct Import Style
+
+## Action
+
+Use relative imports
+
+## Evidence
+
+- importStyle: relative in analysis
+- Pattern in src/bridge_rag/
+
+---
+id: daisy-bridge-instinct-export-style
+trigger: "When exporting functions or classes from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: mbergo/daisy-bridge
+---
+
+# Daisy Bridge Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- exportStyle: named in analysis
+
+---
+id: daisy-bridge-instinct-test-file-location
+trigger: "When adding tests for a module"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: mbergo/daisy-bridge
+---
+
+# Daisy Bridge Instinct Test File Location
+
+## Action
+
+Place test files in the separate tests/ directory, named as test_<module>.py
+
+## Evidence
+
+- testLocation: separate
+- Pattern in tests/test_<module>.py
+
+---
+id: daisy-bridge-instinct-test-types
+trigger: "When writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: mbergo/daisy-bridge
+---
+
+# Daisy Bridge Instinct Test Types
+
+## Action
+
+Write both unit and e2e tests for new features
+
+## Evidence
+
+- testTypes: [unit, e2e]
+- Pattern in tests/
+
+---
+id: daisy-bridge-instinct-test-file-pattern
+trigger: "When naming test files"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: mbergo/daisy-bridge
+---
+
+# Daisy Bridge Instinct Test File Pattern
+
+## Action
+
+Use the pattern test_<module>.py for Python test files
+
+## Evidence
+
+- Pattern in tests/test_<module>.py
+- examples in workflow
+
+---
+id: daisy-bridge-instinct-git-commit-format
+trigger: "When writing a commit message"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: mbergo/daisy-bridge
+---
+
+# Daisy Bridge Instinct Git Commit Format
+
+## Action
+
+Use the conventional commit format with 'feat:' prefix for new features
+
+## Evidence
+
+- commits: type: conventional, prefixes: [feat]
+- Examples: 'feat: implement bridges...'
+
+---
+id: daisy-bridge-instinct-git-commit-length
+trigger: "When composing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: mbergo/daisy-bridge
+---
+
+# Daisy Bridge Instinct Git Commit Length
+
+## Action
+
+Keep commit messages concise, around 60 characters
+
+## Evidence
+
+- averageLength: 62
+- Examples in commit history
+
+---
+id: daisy-bridge-instinct-feature-module-workflow
+trigger: "When adding a new major component or capability to the system"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: mbergo/daisy-bridge
+---
+
+# Daisy Bridge Instinct Feature Module Workflow
+
+## Action
+
+Follow the feature-module-implementation workflow: update/create source files in a submodule, update integration points, add/update tests, fix defects from tests
+
+## Evidence
+
+- Workflow: feature-module-implementation
+- Pattern in src/bridge_rag/<module>/*.py and tests/
+
+---
+id: daisy-bridge-instinct-serving-endpoint-workflow
+trigger: "When exposing new functionality via the API or updating the user-facing console/UI"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: mbergo/daisy-bridge
+---
+
+# Daisy Bridge Instinct Serving Endpoint Workflow
+
+## Action
+
+Follow the serving-endpoint-and-ui-update workflow: update/add FastAPI endpoint, static assets, backend logic, documentation, and optionally tests
+
+## Evidence
+
+- Workflow: serving-endpoint-and-ui-update
+- Pattern in src/bridge_rag/serving/app.py, static/, pipeline/, README.md, tests/
+
