@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"python3 - <<'EOF'\\nimport asyncio, sys\\n\\n# --- versioning ---\\nfrom src.bridge_rag.versioning.blue_green import VersionedDeployment, UnpairedVersionError\\n\\ndep = VersionedDeployment(\\\"SI...",
-  "error": "Exit code 1\nTraceback (most recent call last):\n  File \"<stdin>\", line 4, in <module>\n  File \"/home/mbergo/github/bridge-rag/src/bridge_rag/versioning/blue_green.py\", line 19, in <module>\n    from ..types import BridgeVersion\n  File \"/home/mbergo/github/bridge-rag/src/bridge_rag/types.py\", line 17, in <module>\n    import numpy as np\nModuleNotFoundError: No module named 'numpy'",
-  "timestamp": "2026-06-21T23:36:43.202Z",
-  "retry_count": 1
-}
