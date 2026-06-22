@@ -56,6 +56,9 @@ bridge-rag-bench = "bridge_rag.scripts_entry:benchmark_main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+bridge_rag = ["serving/static/*.html"]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
