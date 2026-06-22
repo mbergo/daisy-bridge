@@ -85,6 +85,37 @@ def build_partitioned_optimizer(
     return optimizer
 
 
+def build_full_partitioned_optimizer(
+    composition: "FullBridgeComposition",  # noqa: F821
+    settings: "Settings",  # noqa: F821
+) -> "torch.optim.AdamW":  # noqa: F821
+    """Partition LRs across all five stages of the six-Jacobian composition.
+
+    The full composition unfreezes fA and gives fB real parameters, so every
+    stage is trainable: ``fa < gab ~ fb ~ fc < gbc``. Each stage's group reads
+    ``settings.lr_<stage>``; a missing knob is a configuration error, not a
+    silent default — the LR ratios are the stability guarantee (Eq.13).
+    """
+    import torch.optim as optim
+
+    stage_params = composition.named_stage_parameters()
+    param_groups: list[dict] = []
+    for name, params in stage_params.items():
+        lr_attr = f"lr_{name}"
+        if not hasattr(settings, lr_attr):
+            raise ValueError(
+                f"no learning rate '{lr_attr}' for stage '{name}'; add it to Settings"
+            )
+        param_groups.append({"name": name, "params": params, "lr": getattr(settings, lr_attr)})
+
+    optimizer = optim.AdamW(param_groups)
+    logger.debug(
+        "Full partitioned AdamW: %s",
+        ", ".join(f"{g['name']}@{g['lr']:.2e}" for g in param_groups),
+    )
+    return optimizer
+
+
 def describe_groups(optimizer: "torch.optim.AdamW") -> list[dict]:  # noqa: F821
     """Return a human-readable summary of each param-group.
 

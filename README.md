@@ -128,6 +128,37 @@ SSE + console UI), version (blue/green paired), benchmark. The prod model
 backends (real weights, vLLM, faiss-gpu) are wired and selected by profile but
 not exercised in this environment.
 
+## Two training regimes: frozen-fA vs. the literal six Jacobians
+
+The paper holds two facts in slight tension. Section 6.1 counts **five**
+sequential data dependencies in the forward pass; Eq.13 writes the gradient to a
+perception parameter as a product of **six** Jacobian factors:
+
+```
+∇θA L = (∂L/∂ŷ)(∂ŷ/∂uBC)(∂uBC/∂hB)(∂hB/∂uAB)(∂uAB/∂hA)(∂hA/∂θA)
+```
+
+Forward has five hops; backprop to the deepest parameter multiplies six terms.
+The stability risk lives in the **six** — that product is what explodes.
+
+But the paper's Step-1 recipe *freezes* `fA`, which deletes `∂hA/∂θA`, and `fB`
+is parameter-free identity, which makes `∂hB/∂uAB` a no-op. Follow that recipe
+and the trainable chain collapses to four factors. The repo ships **both**:
+
+- **`BridgeComposition`** (default) — frozen `fA`, identity `fB`. The trainable
+  chain to a `gAB` parameter is four factors. This is the paper's serving/dev
+  regime. `jacobian_spectral_norm` measures one bridge (per-link conditioning).
+- **`FullBridgeComposition`** — `fA` unfrozen (a trainable perception head) and
+  `fB` a real parametric stage. The gradient now traverses all six. Five
+  LR-partitioned groups (`fa < gab ≈ fb ≈ fc < gbc`). `six_jacobian_spectral_norm`
+  measures the **end-to-end product** directly (power iteration on `J·Jᵀ` via
+  `torch.func`) — because per-link norms can each look fine while the product
+  explodes.
+
+`tests/test_six_jacobian.py` asserts the gradient actually reaches a perception
+parameter (the sixth factor is live, not `None`) and that LayerNorm + residual
+keep the end-to-end product bounded.
+
 ## Beyond feedforward: the brain / OS view
 
 The bridge thesis is not about RAG. It is about any system where modules

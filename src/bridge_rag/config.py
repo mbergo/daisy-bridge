@@ -136,8 +136,11 @@ class Settings(BaseSettings):
     enable_mine_diagnostic: bool = False
 
     # LR partitioning (Stabilizer 4 — the primary lever against Eq.13 collapse).
+    # fA slowest (frozen-ish perception), gBC fastest (QLoRA target). fB sits
+    # mid: a real stage in the full six-Jacobian composition.
     lr_fa: float = 1e-5
     lr_gab: float = 1e-4
+    lr_fb: float = 1e-4
     lr_fc: float = 1e-4
     lr_gbc: float = 1e-3
     grad_clip_norm: float = 1.0

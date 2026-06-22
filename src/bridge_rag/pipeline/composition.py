@@ -110,3 +110,158 @@ def build_composition(
     )
     gen_head = nn.Linear(profile.gen_hidden_dim, out_vocab)
     return BridgeComposition(bridge_ab, bridge_bc, gen_head)
+
+
+# ---------------------------------------------------------------------------
+# Full six-Jacobian composition: fA trainable, fB a real parametric stage.
+#
+# The default BridgeComposition follows the paper's Step-1 recipe (fA frozen,
+# fB identity), which collapses the Eq.13 chain to four factors to a gAB param.
+# This variant honors the *other* half of the paper — Eq.13's literal six —
+# by unfreezing perception and giving inference real parameters. The gradient
+# to a perception param now traverses all six:
+#
+#   dL/dθA = (dL/dlogits)(dlogits/du_bc)(du_bc/dh_b)
+#            (dh_b/du_ab)(du_ab/dh_a)(dh_a/dθA)
+#
+# Two parts of the paper are in tension (freeze fA vs. six Jacobians); this is
+# the six-Jacobian part, made real and instrumented.
+# ---------------------------------------------------------------------------
+
+
+@dataclass(slots=True)
+class FullCompositionOutput:
+    """Full-composition result with every intermediate the probes need."""
+
+    logits: Tensor
+    h_a: Tensor  # fA output (perception) — now a trainable representation
+    u_ab: Tensor  # bridge AB
+    h_b: Tensor  # fB output (inference) — now parametric, not identity
+    u_bc: Tensor  # bridge BC
+
+
+class FullBridgeComposition(nn.Module):
+    """`fC(gBC(fB(gAB(fA(x)))))` with fA and fB both parametric (Eq.13 six).
+
+    Args:
+        perception_head: fA — maps raw input `x` (..., in_dim) to `h_a`.
+        bridge_ab: gAB TensorBridge.
+        inference_stage: fB — a real transform on the span representation
+            (NOT identity), so `dh_b/du_ab` is a genuine Jacobian factor.
+        bridge_bc: gBC TensorBridge.
+        gen_head: fC generation head.
+    """
+
+    def __init__(
+        self,
+        perception_head: nn.Module,
+        bridge_ab: TensorBridge,
+        inference_stage: nn.Module,
+        bridge_bc: TensorBridge,
+        gen_head: nn.Module,
+    ) -> None:
+        super().__init__()
+        self.perception_head = perception_head
+        self.bridge_ab = bridge_ab
+        self.inference_stage = inference_stage
+        self.bridge_bc = bridge_bc
+        self.gen_head = gen_head
+
+    def forward(self, x: Tensor) -> FullCompositionOutput:
+        h_a = self.perception_head(x)  # fA — trainable
+        u_ab = self.bridge_ab(h_a)  # gAB
+        h_b = self.inference_stage(u_ab)  # fB — real, not identity
+        u_bc = self.bridge_bc(h_b)  # gBC
+        logits = self.gen_head(u_bc)  # fC
+        return FullCompositionOutput(logits=logits, h_a=h_a, u_ab=u_ab, h_b=h_b, u_bc=u_bc)
+
+    def named_stage_parameters(self) -> dict[str, list[nn.Parameter]]:
+        """Five trainable stages — fA included, fB included. Keys match LR knobs."""
+        return {
+            "fa": list(self.perception_head.parameters()),
+            "gab": list(self.bridge_ab.parameters()),
+            "fb": list(self.inference_stage.parameters()),
+            "gbc": list(self.bridge_bc.parameters()),
+            "fc": list(self.gen_head.parameters()),
+        }
+
+    def six_jacobian_spectral_norm(self, x: Tensor, *, iters: int = 8) -> float:
+        """Spectral norm of the end-to-end input->logits Jacobian.
+
+        This is the *product* of the forward Jacobians along the whole chain —
+        the quantity whose magnitude governs Eq.13 stability. Per-link probes
+        (a single bridge's norm) can each look fine while the product explodes;
+        this measures the product directly. >> 1 => explosion risk; near 1 =>
+        the LayerNorm + residual conditioning is holding across the full depth.
+
+        Largest singular value of J via power iteration on ``J·Jᵀ`` in output
+        space: alternate ``u = Jᵀv`` (vjp, input space) and ``v = Ju`` (jvp,
+        output space). torch.func keeps the two spaces straight.
+        """
+        from torch.func import jvp, vjp  # lazy: functorch transforms
+
+        x = x.detach()
+
+        def f(inp: Tensor) -> Tensor:
+            return self.forward(inp).logits
+
+        out0 = f(x)
+        v = torch.randn_like(out0)
+        v = v / (v.norm() + 1e-12)
+        sigma = 0.0
+        for _ in range(iters):
+            _, vjp_fn = vjp(f, x)
+            (u,) = vjp_fn(v)  # u = Jᵀ v   (input space)
+            u = (u / (u.norm() + 1e-12)).detach()
+            _, ju = jvp(f, (x,), (u,))  # ju = J u   (output space)
+            ju = ju.detach()
+            sigma = float(ju.norm())
+            v = ju / (ju.norm() + 1e-12)
+        return sigma
+
+
+def build_full_composition(
+    *,
+    settings: Optional[Settings] = None,
+    in_dim: Optional[int] = None,
+    out_vocab: int = 4096,
+) -> FullBridgeComposition:
+    """Construct the six-Jacobian composition for the active profile.
+
+    `in_dim` is the raw perception input width; defaults to `embed_dim` (fA is
+    then an embed_dim->embed_dim trainable transform standing in for the
+    unfrozen embedder in the differentiable graph).
+    """
+    settings = settings or get_settings()
+    profile = settings.profile
+    from ..bridges.factory import build_bridge  # lazy
+
+    d_in = in_dim if in_dim is not None else profile.embed_dim
+    # fA: trainable perception head -> embed_dim
+    perception_head = nn.Sequential(
+        nn.Linear(d_in, profile.embed_dim),
+        nn.GELU(),
+        nn.LayerNorm(profile.embed_dim),
+    )
+    bridge_ab = build_bridge(
+        settings.bridge_ab,
+        in_dim=profile.embed_dim,
+        out_dim=profile.bottleneck_dim,
+        dropout=settings.dropout_gab,
+    )
+    # fB: a real parametric inference stage on the span representation.
+    inference_stage = nn.Sequential(
+        nn.Linear(profile.bottleneck_dim, profile.bottleneck_dim),
+        nn.GELU(),
+        nn.LayerNorm(profile.bottleneck_dim),
+    )
+    bridge_bc = build_bridge(
+        settings.bridge_bc,
+        in_dim=profile.bottleneck_dim,
+        out_dim=profile.gen_hidden_dim,
+        dropout=settings.dropout_gbc,
+    )
+    gen_head = nn.Linear(profile.gen_hidden_dim, out_vocab)
+    return FullBridgeComposition(
+        perception_head, bridge_ab, inference_stage, bridge_bc, gen_head
+    )
